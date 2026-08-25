@@ -12,10 +12,14 @@ func NewWindow(capacity int) *Window {
 }
 
 func (w *Window) Add(sample Sample) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
 	w.samples = append(w.samples, sample)
 }
 
 func (w *Window) delta(raw bool) float64 {
+	w.mu.Lock()
+	defer w.mu.Unlock()
 	if len(w.samples) < 2 {
 		return 0
 	}
