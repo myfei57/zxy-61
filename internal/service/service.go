@@ -140,6 +140,10 @@ func (s *Service) Health() map[string]any {
 func (s *Service) Status() map[string]any {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	// Snapshot the reading and threshold together so the reported pair is
+	// consistent and cannot reflect a reading from one instant and a
+	// threshold from another across a concurrent calibration.
+	ammoniaReading, ammoniaThreshold := s.ammoniaMonitor.ReadingAndThreshold()
 	return map[string]any{
 		"room_count":         len(s.rooms),
 		"compressor_running": s.bank.Running(),
@@ -154,8 +158,8 @@ func (s *Service) Status() map[string]any {
 		"defrost_steps":      s.defrostController.Steps(),
 		"valve_open":         s.supplyValve.IsOpen(),
 		"valve_position":     s.supplyValve.Position(),
-		"ammonia_reading":    s.ammoniaMonitor.Reading(),
-		"ammonia_threshold":  s.ammoniaMonitor.Threshold(),
+		"ammonia_reading":    ammoniaReading,
+		"ammonia_threshold":  ammoniaThreshold,
 		"quota_used":         s.quotaTracker.Used(),
 		"quota_limit":        s.quotaTracker.Limit(),
 		"audit_count":        s.auditLog.Count(),
